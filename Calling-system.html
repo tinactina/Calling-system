@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[ 線上掛號 ]</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: rgb(190, 201, 134);
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .calling-system {
+            justify-content: center;
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        #name_input {
+            width: 300px;
+            height: 30px;
+            text-align: center;
+        }
+
+
+        .btn_2 {
+            background-color: rgb(0, 0, 0);
+            color: antiquewhite;
+            font-size: 13px;
+            border-radius: 18px;
+            padding: 6px 12px;
+
+        }
+
+        .box-area {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            height: 532px;
+            border: 2px solid #000000;
+            margin-bottom: 30px;
+        }
+
+        .box-area>div {
+            padding: 15px 5px;
+            display: flex;
+            gap: 8px;
+            border: 1px solid #000000;
+            box-sizing: border-box;
+        }
+
+        .list {
+            border: 2px solid rgba(85, 135, 82, 0.572);
+            background-color: rgb(248, 255, 240);
+            width: 600px;
+            height: 300px;
+            border-radius: 5px;
+        }
+
+        .list>div {
+            background-color: rgb(228, 227, 199);
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <form class="calling-system">
+        <h1> 掛  號  系  統 </h1>
+        <label for="identity">身份選擇:</label>
+        <select id="identity" name="identity">
+            <option value="一般身份">一般身份</option>
+            <option value="VIP">VIP</option>
+            <option value="特殊身份">特殊身份</option>
+        </select>
+        <input type="name" class="btn" id="name_input" placeholder="請輸入您的姓名">
+        <button type="button" id="id_btn">掛號</button>
+
+        <h4>候診名單</h4>
+        <section class="list" id="patient_list"></section>
+        <div>
+            <button type="button" class="btn_2" id="call_btn">開始叫號</button>
+            <button type="button" class="btn_2" id="clear_btn">清除資料</button>
+        </div>
+
+
+        <script>
+            let people = []; // 用來存放掛號的人員姓名
+            let patient_priority = []; // 用來存放掛號人員的優先順序
+
+            let clear_btn = document.querySelector('#clear_btn');
+            let id_btn = document.querySelector('#id_btn');
+            let call_btn = document.querySelector('#call_btn');
+            let name_input = document.querySelector('#name_input');
+            let patient_list = document.querySelector('#patient_list');
+            let now_number = 0;
+
+            // 當清除資料按鈕被點擊時，清空所有資料
+            clear_btn.addEventListener('click', function () {
+                people = [];
+                patient_priority = [];
+                patient_list.innerHTML = ''; // 清空候診名單
+                now_number = 0;
+            });
+
+            // 當掛號按鈕被點擊時，處理掛號邏輯
+            id_btn.addEventListener('click', function () {
+                let name = name_input.value;
+                let identity = document.querySelector('#identity').value;
+
+                if (name !== '') {
+                    people.push(name); // 將姓名加入到掛號人員陣列中
+                    patient_priority.push(getPriority(identity)); // 根據身份獲取優先順序加入到優先順序陣列中
+
+                    // 根據優先順序重新排序掛號人員和優先順序
+                    sortPatientsByPriority();
+                    displayPatientList();
+
+                    name_input.value = ''; // 清空輸入框
+                } else {
+                    alert('請輸入姓名');
+                }
+            });
+
+            // 根據優先順序降序排序掛號人員和優先順序
+            function sortPatientsByPriority() {
+                for (let i = 0; i < patient_priority.length; i++) {
+                    for (let j = i + 1; j < patient_priority.length; j++) {
+                        if (patient_priority[i] > patient_priority[j]) {
+                            // 交換掛號人員姓名陣列中的元素
+                            let temp = people[i];
+                            people[i] = people[j];
+                            people[j] = temp;
+
+                            // 交換優先順序陣列中的元素
+                            temp = patient_priority[i];
+                            patient_priority[i] = patient_priority[j];
+                            patient_priority[j] = temp;
+                        }
+                    }
+                }
+            }
+
+            // 顯示掛號名單
+            function displayPatientList() {
+                patient_list.innerHTML = ''; // 清空候診名單
+
+                for (let i = 0; i < people.length; i++) {
+                    let identity = getIdentityByIndex(i); // 獲取身份，這裡可以根據索引來決定身份，例如這裡是示範獲取第一個人的身份
+                    let newdiv = document.createElement('div');
+                    newdiv.textContent = `${identity} ➤ ${people[i]}`;
+                    newdiv.style.backgroundColor = getColorByRole(identity); // 根據身份顯示不同的背景顏色
+                    patient_list.appendChild(newdiv);
+                }
+            }
+
+            // 根據索引獲取掛號人員的身份
+            function getIdentityByIndex(index) {
+                if (index < patient_priority.length) {
+                    if (patient_priority[index] === 0) {
+                        return '特殊身份';
+                    } else if (patient_priority[index] === 1) {
+                        return 'VIP';
+                    } else if (patient_priority[index] === 2) {
+                        return '一般身份';
+                    }
+                }
+                return '未知身份';
+            }
+
+            // 獲取身份顏色
+            function getColorByRole(role) {
+                switch (role) {
+                    case '一般身份':
+                        return 'lightblue';
+                    case 'VIP':
+                        return 'lightgreen';
+                    case '特殊身份':
+                        return 'lightcoral';
+                    default:
+                        return 'white';
+                }
+            }
+
+            // 獲取優先順序
+            function getPriority(role) {
+                switch (role) {
+                    case '特殊身份':
+                        return 0;
+                    case 'VIP':
+                        return 1;
+                    case '一般身份':
+                        return 2;
+                    default:
+                        return Infinity; // 預設值，用來處理未知角色
+                }
+            }
+
+            // 當叫號按鈕被點擊時，更新叫號狀態
+            call_btn.addEventListener('click', function () {
+                let patient_list_items = document.querySelectorAll('#patient_list>div');
+                if (now_number < patient_list_items.length) {
+                    patient_list_items[now_number].style.backgroundColor = 'grey';
+                    now_number++;
+                } else {
+                    alert('已經沒有更多的掛號人員了！');
+                }
+            });
+
+
+
+
+
+        </script>
+</body>
+
+</html>
